@@ -1,0 +1,49 @@
+---
+- name: Desplegar Apache con página personalizada
+  hosts: all
+  become: yes
+  vars:
+    apache_package: apache2
+    web_root: /var/www/html
+    index_file: index.html
+    page_title: "Apache desplegado con Ansible"
+    saludo: "Hola equipo Claro, si ves esta página es porque el servicio Apache está corriendo satisfactoriamente."
+    evidencia: "Fecha de despliegue: {{ ansible_date_time.date }} - Host: {{ inventory_hostname }}"
+
+  tasks:
+    - name: Instalar Apache
+      apt:
+        name: "{{ apache_package }}"
+        state: present
+        update_cache: yes
+
+    - name: Asegurar que el servicio Apache esté iniciado y habilitado
+      service:
+        name: "{{ apache_package }}"
+        state: started
+        enabled: yes
+
+    - name: Crear archivo index.html con contenido personalizado
+      copy:
+        dest: "{{ web_root }}/{{ index_file }}"
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>{{ page_title }}</title>
+              <meta charset="UTF-8">
+              <style>
+                  body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding-top: 50px; }
+                  h1 { color: #333; }
+                  p { font-size: 18px; color: #555; }
+              </style>
+          </head>
+          <body>
+              <h1>{{ page_title }}</h1>
+              <p>{{ saludo }}</p>
+              <p>{{ evidencia }}</p>
+          </body>
+          </html>
+        owner: www-data
+        group: www-data
+        mode: '0644'
